@@ -118,7 +118,7 @@ To try it out:
 git clone https://github.com/tatuliana/TestApp.git
 cd TestApp
 ```
-2. Follow the instructions in the demo app README to set up the app.
+2. Open the app in Xcode.
 3. Use **XCUIBuilder** to deploy the framework with your chosen pattern, then build and run the pre-written test examples in the deployed framework to experience its functionality in action.
 
 
