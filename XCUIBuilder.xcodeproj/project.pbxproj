@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		C49776CB2CF1CA5900BA63F7 /* AEXML in Frameworks */ = {isa = PBXBuildFile; productRef = C49776CA2CF1CA5900BA63F7 /* AEXML */; };
+		C49776CE2CF1CC1300BA63F7 /* PathKit in Frameworks */ = {isa = PBXBuildFile; productRef = C49776CD2CF1CC1300BA63F7 /* PathKit */; };
+		C49776D12CF1CC6B00BA63F7 /* XcodeProj in Frameworks */ = {isa = PBXBuildFile; productRef = C49776D02CF1CC6B00BA63F7 /* XcodeProj */; };
+		C49776D42CF1CF6C00BA63F7 /* XcodeProj in Frameworks */ = {isa = PBXBuildFile; productRef = C49776D32CF1CF6C00BA63F7 /* XcodeProj */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		C49775AE2CF06B4100BA63F7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -35,6 +42,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C49776CE2CF1CC1300BA63F7 /* PathKit in Frameworks */,
+				C49776D12CF1CC6B00BA63F7 /* XcodeProj in Frameworks */,
+				C49776CB2CF1CA5900BA63F7 /* AEXML in Frameworks */,
+				C49776D42CF1CF6C00BA63F7 /* XcodeProj in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -77,6 +88,10 @@
 			);
 			name = XCUIBuilder;
 			packageProductDependencies = (
+				C49776CA2CF1CA5900BA63F7 /* AEXML */,
+				C49776CD2CF1CC1300BA63F7 /* PathKit */,
+				C49776D02CF1CC6B00BA63F7 /* XcodeProj */,
+				C49776D32CF1CF6C00BA63F7 /* XcodeProj */,
 			);
 			productName = XCUIBuilder;
 			productReference = C49775B02CF06B4100BA63F7 /* XCUIBuilder */;
@@ -106,6 +121,9 @@
 			);
 			mainGroup = C49775A72CF06B4100BA63F7;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C49776D22CF1CF6C00BA63F7 /* XCRemoteSwiftPackageReference "xcodeproj" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C49775B12CF06B4100BA63F7 /* Products */;
 			projectDirPath = "";
@@ -289,6 +307,37 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C49776D22CF1CF6C00BA63F7 /* XCRemoteSwiftPackageReference "xcodeproj" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/tuist/xcodeproj.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.24.10;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C49776CA2CF1CA5900BA63F7 /* AEXML */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AEXML;
+		};
+		C49776CD2CF1CC1300BA63F7 /* PathKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PathKit;
+		};
+		C49776D02CF1CC6B00BA63F7 /* XcodeProj */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = XcodeProj;
+		};
+		C49776D32CF1CF6C00BA63F7 /* XcodeProj */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C49776D22CF1CF6C00BA63F7 /* XCRemoteSwiftPackageReference "xcodeproj" */;
+			productName = XcodeProj;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C49775A82CF06B4100BA63F7 /* Project object */;
 }

@@ -1,0 +1,21 @@
+# User-specific files
+*.xcuserdata/
+*.xcuserdatad/
+*.xcscheme
+*.swp
+
+# Build files
+DerivedData/
+build/
+
+# Swift Package Manager
+.build/
+Package.resolved
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# General files to ignore
+.DS_Store
+*.log
