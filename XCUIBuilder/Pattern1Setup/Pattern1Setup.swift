@@ -18,6 +18,7 @@ func generateScreenTransitionChainingTabBarProtocolContent() -> String {
         var screenName: String { get }
         func select<T>(tab: Tabs, goTo screen: T.Type) -> T where T: BaseScreen
         func tabIsSelected(_ tab: Tabs, expected result: Bool) -> Bool
+        func assertTabIsSelected(_ tab: Tabs, expected result: Bool) -> Self
     }
 
     extension TabBarProtocol {
@@ -57,6 +58,29 @@ func generateScreenTransitionChainingTabBarProtocolContent() -> String {
             return runActivity(element: myTab.description, state: .selected, expected: result) {
                 myTab.wait(state: .selected, result: result)
             }
+        }
+        
+        /// Verifies if the specigic tab is selected.
+        /// - parameter tab: `Tabs`. The enum to select the tab from
+        /// - parameter expected: `Bool`. The expected result, which is `true` by default.
+        /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
+        /// - warning: Use with `XCTAssertTrue`. If you want to assert that the element doesn't exist, set the expected result to `false`. It helps the test to run faster.
+        /// - _Examples:_
+        ///   - To verify the element exists:
+        ///     ```swift
+        ///     XCTAssertTrue(sceenName.tabIsSelected(.home)
+        ///     ```
+        ///   - To verify the element doesn't exist:
+        ///     ```swift
+        ///     XCTAssertTrue(screenName.tabIsSelected(.home, expected: false))
+        ///     ```
+        @discardableResult
+        func assertTabIsSelected(_ tab: Tabs, expected result: Bool = true) -> Self {
+            let myTab = BaseScreen.app.tabBars.buttons[tab.rawValue]
+            runActivity(element: myTab.description, state: .selected, expected: result) {
+                myTab.assert(state: .selected, expected: result)
+            }
+            return self
         }
     }
     """
