@@ -23,7 +23,8 @@ The tool deploys a framework that incorporates the functionality of the **XCUIEn
     - Logs accurate screen names for better traceability.
 
 **2. Flexible Chaining Patterns:**
-- **Screen Transition Chaining**:
+
+**Screen Transition Chaining**:
   - Every function returns an instance of the screen, which could be:
     - The same screen.
     - The next screen in the flow.
