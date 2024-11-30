@@ -59,6 +59,7 @@ Demonstrates the second version only, where `assert` functions are implemented i
 ## 📂 Folder Structure
 
 After running XCUIBuilder, your project will follow this structure:
+
 <img width="496" alt="Screenshot 2024-11-29 at 9 35 01 PM" src="https://github.com/user-attachments/assets/0a02d6c6-a786-46ea-85bd-9bf33c3582f8">
 
 ## 🛠️ Setup
