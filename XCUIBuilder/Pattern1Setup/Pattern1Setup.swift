@@ -60,19 +60,18 @@ func generateScreenTransitionChainingTabBarProtocolContent() -> String {
             }
         }
         
-        /// Verifies if the specigic tab is selected.
+        /// Asserts if the specigic tab is selected.
         /// - parameter tab: `Tabs`. The enum to select the tab from
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
-        /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
-        /// - warning: Use with `XCTAssertTrue`. If you want to assert that the element doesn't exist, set the expected result to `false`. It helps the test to run faster.
+        /// - returns: Self. Returns self for the chaining purpose
         /// - _Examples:_
         ///   - To verify the element exists:
         ///     ```swift
-        ///     XCTAssertTrue(sceenName.tabIsSelected(.home)
+        ///     sceenName.tabIsSelected(.home)
         ///     ```
         ///   - To verify the element doesn't exist:
         ///     ```swift
-        ///     XCTAssertTrue(screenName.tabIsSelected(.home, expected: false))
+        ///     screenName.tabIsSelected(.home, expected: false)
         ///     ```
         @discardableResult
         func assertTabIsSelected(_ tab: Tabs, expected result: Bool = true) -> Self {
@@ -204,10 +203,9 @@ func generateTransitionChainingLoginScreenContent() -> String {
             }
         }
         
-        /// Verifies if the Login button is enabled.
+        /// Asserts if the Login button is enabled.
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
-        /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
-        /// - warning: Use with `XCTAssertTrue`. If you want to assert that the element doesn't exist, set the expected result to `false`. This helps the test to run faster.
+        /// - returns: Self. Returns self for the chaining purpose
         /// - _Examples:_
         ///   - To verify the element is enabled:
         ///     ```swift
@@ -217,16 +215,16 @@ func generateTransitionChainingLoginScreenContent() -> String {
         ///     ```swift
         ///    loginScreen.assertLoginButtonIsEnabled(expected: false)
         ///     ```
-        func assertLoginButtonIsEnabled(expected result: Bool = true) {
-            return runActivity(element: "Login button", state: .enabled, expected: result) {
+        func assertLoginButtonIsEnabled(expected result: Bool = true) -> Self {
+            runActivity(element: "Login button", state: .enabled, expected: result) {
                 loginButton.assert(state: .enabled, expected: result)
+                return self
             }
         }
         
-        /// Verifies if the login `Error` alert exists.
+        /// Asserts if the login `Error` alert exists.
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
-        /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
-        /// - warning: Use with `XCTAssertTrue`. If you want to assert that the element doesn't exist, set the expected result to `false`. It helps the test to run faster.
+        /// - returns: Self. Returns self for the chaining purpose
         /// - _Examples:_
         ///   - To verify the element exists:
         ///     ```swift
@@ -236,9 +234,10 @@ func generateTransitionChainingLoginScreenContent() -> String {
         ///     ```swift
         ///     loginScreen.assertErrorAlertExists(result: false)
         ///     ```
-        func assertErrorAlertExists(expected result: Bool = true) {
+        func assertErrorAlertExists(expected result: Bool = true) -> Self {
             runActivity(element: "Login Error alert", state: .exists, expected: result) {
-                return errorAlert.assert(expected: result)
+                errorAlert.assert(expected: result)
+                return self
             }
         }
     }
