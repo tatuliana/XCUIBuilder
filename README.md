@@ -144,6 +144,31 @@ The deployed framework is fully customizable, enabling you to:
 - Customize the configuration, such as enums or protocols, to align with your app's architecture.
 > **Note**: Ensure that modifications are thoroughly tested to maintain the integrity and functionality of the framework.
 
+## 🧩 Extending Framework Development with [XCUISnippetDeployer](https://github.com/tatuliana/XCUISnippet_Deployer/tree/main)
+Once the foundational framework has been deployed with **XCUIBuilder**, you can enhance your workflow by leveraging **XCUISnippetDeployer**. This complementary tool simplifies and accelerates the development of additional tests by providing ready-to-use, well-structured code snippets that align with the architecture deployed by **XCUIBuilder**.
+
+### What is XCUISnippetDeployer?
+**XCUISnippetDeployer** is a CLI tool that:
+- Automates the deployment of Xcode code snippets for common XCUITest patterns.
+- Supports 2 design patterns, **Screen Transition Chaining** and **Self-Chaining**, ensuring consistency with the chosen framework architecture.
+- Helps developers streamline test writing, improving both productivity and code quality.
+
+### How Does It Work?
+1. Select a pattern in **XCUISnippetDeployer** that matches your framework architecture.
+2. Deploy snippets into Xcode's environment with a single command.
+3. Access the deployed snippets in Xcode's snippet manager (`Command + Shift + L`) to efficiently create new screens in your Page Object Model (POM) and add test cases with consistent patterns and best practices.
+
+### When to Use XCUISnippetDeployer?
+- **After Initial Framework Deployment**: Use XCUISnippetDeployer to add code snippets for screens, protocols, assertions, and reusable test components.
+- **To Maintain Consistency**: Snippets align perfectly with the XCUIBuilder-generated architecture, ensuring uniformity across your test codebase.
+
+### Integration with XCUIBuilder
+- **XCUIBuilder** lays the foundation of the XCUITest framework with a robust directory structure, base classes, extensions and protocols.
+- **XCUISnippetDeployer** builds upon this foundation, offering pre-defined templates and reusable patterns to speed up test development.
+
+### Getting Started
+Refer to the [XCUISnippetDeployer documentation](https://github.com/tatuliana/XCUISnippet_Deployer/tree/main) for installation and usage instructions.
+
 ## 🤝 Contributing
 
 1. Fork the repository and create your feature branch.
