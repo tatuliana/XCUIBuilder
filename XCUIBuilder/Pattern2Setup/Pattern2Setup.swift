@@ -27,8 +27,7 @@ func generateSelfChainingTabBarProtocolContent() -> String {
        
        /// Select the tab on the tab bar
        /// - parameter tab: `Tabs`. The enum to select the tab from
-       /// - parameter goTo: The name of the screen that is expected after tapping the element.
-       /// - returns: self
+       /// - returns: Self. Returns self for the chaining purpose
        @discardableResult
        func select(tab: Tabs) -> Self {
            runActivity(.step, "Tap '\\(tab.rawValue)' tab") {
@@ -37,19 +36,18 @@ func generateSelfChainingTabBarProtocolContent() -> String {
            }
        }
        
-       /// Verifies if the specigic tab is selected.
+       /// Asserts if the specigic tab is selected.
        /// - parameter tab: `Tabs`. The enum to select the tab from
        /// - parameter expected: `Bool`. The expected result, which is `true` by default.
-       /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
-       /// - warning: Use with `XCTAssertTrue`. If you want to assert that the element doesn't exist, set the expected result to `false`. It helps the test to run faster.
+       /// - returns: Self. Returns self for the chaining purpose
        /// - _Examples:_
        ///   - To verify the element exists:
        ///     ```swift
-       ///     XCTAssertTrue(sceenName.tabIsSelected(.home)
+       ///     sceenName.tabIsSelected(.home)
        ///     ```
        ///   - To verify the element doesn't exist:
        ///     ```swift
-       ///     XCTAssertTrue(screenName.tabIsSelected(.home, expected: false))
+       ///     screenName.tabIsSelected(.home, expected: false)
        ///     ```
        @discardableResult
        func assertTabIsSelected(_ tab: Tabs, expected result: Bool = true) -> Self {
@@ -81,13 +79,13 @@ func generateSelfChainingLaunchScreenContent() -> String {
         /// Verifies the screen state by checking that the element unique to this particular screen exists.
         private func visible() {
             runActivity(.screen, "Verifying if the screen is present") {
-                XCTAssertTrue(goButton.wait(for: .loading), "\\(Icons.error.rawValue) \\(screenName) is not present")
+                XCTAssertTrue(goButton.wait(for: .loading), \\(Icons.error.rawValue) \\(screenName) is not present")
             }
         }
         
         // MARK: Actions
         /// Taps the Go button
-        /// - returns: An instance of `LoginScreen` representing the next screen after tapping the button.
+        /// - returns: Self. Returns self for the chaining purpose
         @discardableResult
         func tapGoButton() -> Self {
             runActivity(.step, "Tap the 'Go' button") {
@@ -127,7 +125,7 @@ func generateSelfChainingLoginScreenContent() -> String {
         // MARK: Actions
         /// Enter the `username` into the `usernameTextField`.
         /// - parameter username: The `username` to enter into the `usernameTextField`.
-        /// - returns: An instance of `LoginScreen`.
+        /// - returns: Self. Returns self for the chaining purpose
         @discardableResult
         func enter(username: String) -> Self {
             runActivity(.step, "Enter username into the usernameTextField") {
@@ -139,7 +137,7 @@ func generateSelfChainingLoginScreenContent() -> String {
         
         /// Enter the `username` into the `usernameTextField`.
         /// - parameter password: The `password` to enter into the `passwordTextField`.
-        /// - returns: An instance of `LoginScreen`.
+        /// - returns: Self. Returns self for the chaining purpose
         @discardableResult
         func enter(password: String) -> Self {
             runActivity(.step, "Enter password into the passwordTextField") {
@@ -151,7 +149,7 @@ func generateSelfChainingLoginScreenContent() -> String {
         
         /// Taps the `Login` button
         /// - parameter screen: The screen to navigate to after tapping the button.
-        /// - returns: An instance of `LoginScreen` in case of the error message or an instance `HomeScreen` after tapping the button.
+        /// - returns: Self. Returns self for the chaining purpose
         @discardableResult
         func tapLoginButton() -> Self {
             runActivity(.step, "Tap the Login button") {
@@ -161,18 +159,18 @@ func generateSelfChainingLoginScreenContent() -> String {
         }
         
         // MARK: Assertions
-        /// Verifies if the Login button is enabled.
+        /// Asserts if the Login button is enabled.
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
-        /// - returns: An instance of `Self` to allow method chaining.
+        /// - returns: Self. Returns self for the chaining purpose
         /// - warning: If you want to assert that the element doesn't exist, set the expected result to `false`.
         /// - _Examples:_
         ///   - To verify the element is enabled:
         ///     ```swift
-        ///     loginScreen.assertLoginButtonIsEnabled()
+        ///        .assertLoginButtonIsEnabled()
         ///     ```
         ///   - To verify the element isn't enabled:
         ///     ```swift
-        ///    loginScreen.assertLoginButtonIsEnabled(expected: false)
+        ///        .assertLoginButtonIsEnabled(expected: false)
         ///     ```
         @discardableResult
         func assertLoginButtonIsEnabled(expected result: Bool = true) -> Self {
@@ -182,18 +180,18 @@ func generateSelfChainingLoginScreenContent() -> String {
             }
         }
         
-        /// Verifies if the login `Error` alert exists.
+        /// Asserts if the login `Error` alert exists.
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
-        /// - returns: An instance of `Self` to allow method chaining.
+        /// - returns: Self. Returns self for the chaining purpose
         /// - warning: If you want to assert that the element doesn't exist, set the expected result to `false`.
         /// - _Examples:_
         ///   - To verify the element exists:
         ///     ```swift
-        ///     loginScreen.assertErrorAlertExists()
+        ///        .assertErrorAlertExists()
         ///     ```
         ///   - To verify the element doesn't exist:
         ///     ```swift
-        ///     loginScreen.assertErrorAlertExists(result: false)
+        ///        .assertErrorAlertExists(result: false)
         ///     ```
         @discardableResult
         func assertErrorAlertExists(expected result: Bool = true) -> Self {
