@@ -38,7 +38,7 @@ func generateScreenTransitionChainingTabBarProtocolContent() -> String {
             }
         }
         
-        /// Verifies if the specific tab is selected.
+        /// Asserts if the specific tab is selected.
         /// - parameter tab: `Tabs`. The enum to select the tab from
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
         /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
@@ -183,7 +183,7 @@ func generateTransitionChainingLoginScreenContent() -> String {
         }
         
         // MARK: Assertions
-        /// Verifies if the Login button is enabled.
+        /// Asserts if the Login button is enabled.
         /// - parameter expected: `Bool`. The expected result, which is `true` by default.
         /// - returns: `Bool`. Returns `true` if the button's state matches the expected result, otherwise `false`.
         /// - warning: Use with `XCTAssertTrue`. If you want to assert that the element doesn't exist, set the expected result to `false`. This helps the test to run faster.
@@ -215,6 +215,7 @@ func generateTransitionChainingLoginScreenContent() -> String {
         ///     ```swift
         ///    loginScreen.assertLoginButtonIsEnabled(expected: false)
         ///     ```
+        @discardableResult
         func assertLoginButtonIsEnabled(expected result: Bool = true) -> Self {
             runActivity(element: "Login button", state: .enabled, expected: result) {
                 loginButton.assert(state: .enabled, expected: result)
@@ -234,6 +235,7 @@ func generateTransitionChainingLoginScreenContent() -> String {
         ///     ```swift
         ///     loginScreen.assertErrorAlertExists(result: false)
         ///     ```
+        @discardableResult  
         func assertErrorAlertExists(expected result: Bool = true) -> Self {
             runActivity(element: "Login Error alert", state: .exists, expected: result) {
                 errorAlert.assert(expected: result)
