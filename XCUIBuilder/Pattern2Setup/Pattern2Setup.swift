@@ -79,7 +79,7 @@ func generateSelfChainingLaunchScreenContent() -> String {
         /// Verifies the screen state by checking that the element unique to this particular screen exists.
         private func visible() {
             runActivity(.screen, "Verifying if the screen is present") {
-                XCTAssertTrue(goButton.wait(for: .loading), \\(Icons.error.rawValue) \\(screenName) is not present")
+                XCTAssertTrue(goButton.wait(for: .loading), "\\(Icons.error.rawValue) \\(screenName) is not present")
             }
         }
         
