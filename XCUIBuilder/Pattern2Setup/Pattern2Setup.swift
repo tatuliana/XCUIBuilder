@@ -9,27 +9,27 @@ import Foundation
 import XcodeProj
 import PathKit
 
-func generateSelfChainingTabBarProtocolContent() -> String {
+func generateSelfChainingTabBarProtocolExampleContent() -> String {
     return """
    import Foundation
    import XCTest
 
-   protocol TabBarProtocol: ScreenActivitiesProtocol {
+   protocol TabBarProtocolExample: ScreenActivitiesProtocol {
        var screenName: String { get }
-       func select(tab: Tabs) -> Self
-       func assertTabIsSelected(_ tab: Tabs, expected result: Bool) -> Self
+       func select(tab: TabsExample) -> Self
+       func assertTabIsSelected(_ tab: TabsExample, expected result: Bool) -> Self
    }
 
-   extension TabBarProtocol where Self: BaseScreen {
+   extension TabBarProtocolExample where Self: BaseScreen {
        var screenName: String {
            String(describing: type(of: self))
        }
        
        /// Select the tab on the tab bar
-       /// - parameter tab: `Tabs`. The enum to select the tab from
+       /// - parameter tab: `TabsExample`. The enum to select the tab from
        /// - returns: Self. Returns self for the chaining purpose
        @discardableResult
-       func select(tab: Tabs) -> Self {
+       func select(tab: TabsExample) -> Self {
            runActivity(.step, "Tap '\\(tab.rawValue)' tab") {
                BaseScreen.app.tabBars.buttons[tab.rawValue].tap()
                return self
@@ -37,7 +37,7 @@ func generateSelfChainingTabBarProtocolContent() -> String {
        }
        
        /// Asserts if the specigic tab is selected.
-       /// - parameter tab: `Tabs`. The enum to select the tab from
+       /// - parameter tab: `TabsExample`. The enum to select the tab from
        /// - parameter expected: `Bool`. The expected result, which is `true` by default.
        /// - returns: Self. Returns self for the chaining purpose
        /// - _Examples:_
@@ -50,7 +50,7 @@ func generateSelfChainingTabBarProtocolContent() -> String {
        ///     screenName.tabIsSelected(.home, expected: false)
        ///     ```
        @discardableResult
-       func assertTabIsSelected(_ tab: Tabs, expected result: Bool = true) -> Self {
+       func assertTabIsSelected(_ tab: TabsExample, expected result: Bool = true) -> Self {
            let myTab = BaseScreen.app.tabBars.buttons[tab.rawValue]
            runActivity(element: myTab.description, state: .selected, expected: result) {
                myTab.assert(state: .selected, expected: result)
@@ -61,11 +61,11 @@ func generateSelfChainingTabBarProtocolContent() -> String {
    """
 }
 
-func generateSelfChainingLaunchScreenContent() -> String {
+func generateSelfChainingLaunchScreenExampleContent() -> String {
     return """
     import XCTest
 
-    final class LaunchScreen: BaseScreen {
+    final class LaunchScreenExample: BaseScreen {
         // MARK: UI elements declaration
         private lazy var goButton = BaseScreen.app.buttons["Go"].firstMatch
         
@@ -97,11 +97,11 @@ func generateSelfChainingLaunchScreenContent() -> String {
     """
 }
 
-func generateSelfChainingLoginScreenContent() -> String {
+func generateSelfChainingLoginScreenExampleContent() -> String {
     return """
     import XCTest
 
-    final class LoginScreen: BaseScreen {
+    final class LoginScreenExample: BaseScreen {
         // MARK: UI elements declaration
         private lazy var usernameTextField = BaseScreen.app.textFields["Username"].firstMatch
         private lazy var passwordTextField = BaseScreen.app.secureTextFields["Password"].firstMatch
@@ -204,11 +204,11 @@ func generateSelfChainingLoginScreenContent() -> String {
     """
 }
 
-func generateSelfChainingHomeScreenContent() -> String {
+func generateSelfChainingHomeScreenExampleContent() -> String {
     return """
     import XCTest
 
-    final class HomeScreen: BaseScreen, TabBarProtocol {
+    final class HomeScreenExample: BaseScreen, TabBarProtocolExample {
         // MARK: UI elements declaration
         private lazy var welcomeLabel = BaseScreen.app.staticTexts.label(containing: "Welcome").firstMatch
         
@@ -229,26 +229,26 @@ func generateSelfChainingHomeScreenContent() -> String {
     """
 }
 
-func generateSelfChainingUITestsContent() -> String {
+func generateSelfChainingUITestsExampleContent() -> String {
     return """
     import XCTest
 
     // Screen Transition Chaining UI Test Examples
-    final class SelfChainingUITests: BaseTest {
+    final class SelfChainingUITestsExampleExample: BaseTest {
         func testLoginButtonIsDisabled() {
             runActivity(named: "Test Login Button is disabled") {
-                LaunchScreen()
+                LaunchScreenExample()
                     .tapGoButton()
-                LoginScreen()
+                LoginScreenExample()
                     .assertLoginButtonIsEnabled(expected: false)
             }
         }
         
         func testLoginButtonIsEnabled() {
             runActivity(named: "Test Login Button is enabled") {
-                LaunchScreen()
+                LaunchScreenExample()
                     .tapGoButton()
-                LoginScreen()
+                LoginScreenExample()
                     .enter(username: "Santa")
                     .enter(password: "12345")
                     .assertLoginButtonIsEnabled()
@@ -257,9 +257,9 @@ func generateSelfChainingUITestsContent() -> String {
         
         func testLoginErrorAlertIsDisplayed() {
             runActivity(named: "Test Login Error Alert is Displayed") {
-                LaunchScreen()
+                LaunchScreenExample()
                     .tapGoButton()
-                LoginScreen()
+                LoginScreenExample()
                     .enter(username: "Santa")
                     .enter(password: "1234567")
                     .tapLoginButton()
@@ -269,13 +269,13 @@ func generateSelfChainingUITestsContent() -> String {
         
         func testHappyPathLogin() {
             runActivity(named: "Test Happy Path Login") {
-                LaunchScreen()
+                LaunchScreenExample()
                     .tapGoButton()
-                LoginScreen()
+                LoginScreenExample()
                     .enter(username: "Santa")
                     .enter(password: "12345")
                     .tapLoginButton()
-                HomeScreen()
+                HomeScreenExample()
                     .assertTabIsSelected(.home)
             }
         }

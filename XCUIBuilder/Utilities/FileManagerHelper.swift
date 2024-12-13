@@ -81,7 +81,7 @@ func addSharedFiles(basePath: Path) {
         ("Support/Enums", "ElementState.swift", generateElementStateEnumContent()),
         ("Support/Enums", "Timeout.swift", generateTimeoutEnumContent()),
         ("Support/Enums", "Icons.swift", generateIconsEnumContent()),
-        ("Support/Enums", "Tabs.swift", generateTabsEnumContent()),
+        ("Support/Enums", "TabsExample.swift", generateTabsExampleEnumContent()),
         ("Support/Enums", "Properties.swift", generatePropertiesEnumContent())
     ]
 
@@ -95,18 +95,18 @@ func addSharedFiles(basePath: Path) {
 func addPatternSpecificFiles(basePath: Path, pattern: BuilderPattern) {
     switch pattern {
     case .selfChaining:
-        createFileIfNeeded(path: basePath + Path("Screens") + Path("LaunchScreen.swift"), content: generateSelfChainingLaunchScreenContent())
-        createFileIfNeeded(path: basePath + Path("Screens") + Path("LoginScreen.swift"), content: generateSelfChainingLoginScreenContent())
-        createFileIfNeeded(path: basePath + Path("Screens") + Path("HomeScreen.swift"), content: generateSelfChainingHomeScreenContent())
-        createFileIfNeeded(path: basePath + Path("Tests") + Path("SelfChainingUITests.swift"), content: generateSelfChainingUITestsContent())
-        createFileIfNeeded(path: basePath + Path("Support/Protocols") + Path("TabBarProtocol.swift"), content: generateSelfChainingTabBarProtocolContent())
+        createFileIfNeeded(path: basePath + Path("Screens") + Path("LaunchScreenExample.swift"), content: generateSelfChainingLaunchScreenExampleContent())
+        createFileIfNeeded(path: basePath + Path("Screens") + Path("LoginScreenExample.swift"), content: generateSelfChainingLoginScreenExampleContent())
+        createFileIfNeeded(path: basePath + Path("Screens") + Path("HomeScreenExample.swift"), content: generateSelfChainingHomeScreenExampleContent())
+        createFileIfNeeded(path: basePath + Path("Tests") + Path("SelfChainingUITestsExample.swift"), content: generateSelfChainingUITestsExampleContent())
+        createFileIfNeeded(path: basePath + Path("Support/Protocols") + Path("TabBarProtocolExample.swift"), content: generateSelfChainingTabBarProtocolExampleContent())
 
     case .screenTransitionChaining:
-        createFileIfNeeded(path: basePath + Path("Screens") + Path("LaunchScreen.swift"), content: generateTransitionChainingLaunchScreenContent())
-        createFileIfNeeded(path: basePath + Path("Screens") + Path("LoginScreen.swift"), content: generateTransitionChainingLoginScreenContent())
-        createFileIfNeeded(path: basePath + Path("Screens") + Path("HomeScreen.swift"), content: generateTransitionChainingHomeScreenContent())
-        createFileIfNeeded(path: basePath + Path("Tests") + Path("TransitionChainingUITests.swift"), content: generateTransitionChainingUITests())
-        createFileIfNeeded(path: basePath + Path("Support/Protocols") + Path("TabBarProtocol.swift"), content: generateScreenTransitionChainingTabBarProtocolContent())
+        createFileIfNeeded(path: basePath + Path("Screens") + Path("LaunchScreenExample.swift"), content: generateTransitionChainingLaunchScreenExampleContent())
+        createFileIfNeeded(path: basePath + Path("Screens") + Path("LoginScreenExample.swift"), content: generateTransitionChainingLoginScreenExampleContent())
+        createFileIfNeeded(path: basePath + Path("Screens") + Path("HomeScreenExample.swift"), content: generateTransitionChainingHomeScreenExampleContent())
+        createFileIfNeeded(path: basePath + Path("Tests") + Path("TransitionChainingUITestsExample.swift"), content: generateTransitionChainingUITestsExample())
+        createFileIfNeeded(path: basePath + Path("Support/Protocols") + Path("TabBarProtocolExample.swift"), content: generateScreenTransitionChainingTabBarProtocolExampleContent())
     }
 }
 

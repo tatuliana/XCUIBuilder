@@ -530,11 +530,11 @@ func generateIconsEnumContent() -> String {
     """
 }
 
-func generateTabsEnumContent() -> String {
+func generateTabsExampleEnumContent() -> String {
     return """
     import Foundation
 
-    enum Tabs: String {
+    enum TabsExample: String {
         case home = "Home"
         case profile = "Profile"
         case settings = "Settings"
