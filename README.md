@@ -92,6 +92,8 @@ open XCUIBuilder.xcodeproj
     **1: Screen Transition Chaining**
     
     **2: Self Chaining**
+
+**📹 [Watch: Deploying Your Framework with XCUIBuilder](https://github.com/user-attachments/assets/7e9a40f4-e208-4212-bc03-dc262b5b23bc)**
 ### 4. Verify Setup:
 
 After the deployment, verify that the newly created framework folders are added to your target. If the folders do not appear in Xcode, close the Xcode app and reopen your project to refresh the file structure.
