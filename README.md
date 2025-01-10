@@ -92,6 +92,8 @@ open XCUIBuilder.xcodeproj
     **1: Screen Transition Chaining**
     
     **2: Self Chaining**
+
+**📹 [Watch: Deploying Your Framework with XCUIBuilder](https://github.com/user-attachments/assets/7e9a40f4-e208-4212-bc03-dc262b5b23bc)**
 ### 4. Verify Setup:
 
 After the deployment, verify that the newly created framework folders are added to your target. If the folders do not appear in Xcode, close the Xcode app and reopen your project to refresh the file structure.
@@ -126,15 +128,16 @@ cd TestApp
 
 Once the framework has been successfully deployed, here’s what you can do next:
 
-### 1. Remove the Deployment Tool
-The tool used for deployment is no longer required after setup and can be safely removed from your project.
+### 1. Understand XCUIBuilder
+**XCUIBuilder** is a standalone utility designed to deploy the skeleton of the testing framework. After setup, it can be kept for future use or removed independently.
 
 ### 2. Create New Screens and Tests
 Adapt the deployed framework to your specific app by:
 
-Creating new screen classes with real UI element locators.
-Writing functions for these screens following the provided examples.
-Adding test cases tailored to your workflows using the deployed framework.
+- Creating new screen classes with real UI element locators.
+- Writing functions for these screens following the provided examples. Adding test cases tailored to your workflows using the deployed framework.
+
+> **Note**: *All the files containing the word `Example` in their names can be safely removed or modified to fit your project needs.*
 
 ### 3. Modify the Framework
 The deployed framework is fully customizable, enabling you to:
