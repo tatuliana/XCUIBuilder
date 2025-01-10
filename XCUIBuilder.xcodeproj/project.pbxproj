@@ -266,6 +266,7 @@
 		C49775B82CF06B4100BA63F7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6ZBE78E5G8;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -277,6 +278,7 @@
 		C49775B92CF06B4100BA63F7 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6ZBE78E5G8;
 				ENABLE_HARDENED_RUNTIME = YES;
