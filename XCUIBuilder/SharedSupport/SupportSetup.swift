@@ -351,7 +351,6 @@ func generateXCUIElementExtensionContent() -> String {
             coordinate(withNormalizedOffset: CGVector(dx: dx, dy: dy)).tap()
         }
         
-        
         /// Returns sibling elements of the given type, if the current element can be identified by an `identifier` or a `label`.
         /// - Parameters:
         ///   - siblingType: The type of sibling elements you want to find.
@@ -427,63 +426,72 @@ func generateXCUIElementExtensionContent() -> String {
             XCTAssertTrue(wait(state: state, result: result, for: timeout), "\\(error)", file: file, line: line)
         }
         
-        /// Asserts that a specific property of a UI element matches an expected value.
-        /// - parameter property: `Properties`. The property of the element to check. Possible values are `.label`, `.value`, and `.placeholderValue`.
-        /// - parameter equalTo: `String`. The expected value of the property.
-        /// - parameter expected: `Bool`. The expected result of the comparison. Default is `true`.
-        /// - parameter timeout: `TestTimeout`. The time within which the property value must match the expected result. Default is `.defaultTimeout`.
-        /// - parameter file: `StaticString`. The file where the assertion is performed. Used for logging purposes when the test fails. Default is the current file.
-        /// - parameter line: `UInt`. The line number where the assertion is performed. Used for logging purposes when the test fails. Default is the current line.
-        /// - warning: Use `XCTAssertEqual` or `XCTAssertNotEqual` based on the `expected` parameter to validate the condition.
-        /// - returns: `Void`. Asserts the condition and logs error if it fails.
-        ///
-        /// - _Examples:_
-        ///   - To verify the label of an element equals "Submit":
-        ///     ```swift
-        ///     assert(for: .label, equalTo: "Submit")
-        ///     ```
-        ///   - To verify the value of an element is not equal to "Jane Doe":
-        ///     ```swift
-        ///     assert(for: .value, equalTo: "Jane Doe", expected: false)
-        ///     ```
         func assert(
             for property: Properties,
-            equalTo: String,
+            equalTo expectedValue: String,
             expected result: Bool = true,
             timeout: Timeout = .normal,
             file: StaticString = #file,
             line: UInt = #line
         ) {
+            let predicate: NSPredicate = {
+                switch property {
+                case .label:
+                    return result
+                    ? NSPredicate(format: "label MATCHES %@", NSRegularExpression.escapedPattern(for: expectedValue))
+                    : NSPredicate(format: "NOT (label MATCHES %@)", NSRegularExpression.escapedPattern(for: expectedValue))
+                case .value:
+                    return result
+                    ? NSPredicate(format: "value MATCHES %@", NSRegularExpression.escapedPattern(for: expectedValue))
+                    : NSPredicate(format: "NOT (value MATCHES %@)", NSRegularExpression.escapedPattern(for: expectedValue))
+                case .placeholderValue:
+                    return result
+                    ? NSPredicate(format: "placeholderValue MATCHES %@", NSRegularExpression.escapedPattern(for: expectedValue))
+                    : NSPredicate(format: "NOT (placeholderValue MATCHES %@)", NSRegularExpression.escapedPattern(for: expectedValue))
+                }
+            }()
+            let expectation = XCTNSPredicateExpectation(predicate: predicate, object: self)
+            let waiterResult = XCTWaiter().wait(for: [expectation], timeout: timeout.rawValue)
+                
             let actualValue: String? = {
                 switch property {
                 case .label:
-                    return label
+                    return self.label
                 case .value:
-                    return value as? String
+                    return self.value as? String
                 case .placeholderValue:
-                    return placeholderValue
+                    return self.placeholderValue
                 }
             }()
-            
-            // Ensure we have an actual value to compare
+            if waiterResult != .completed {
+                print(
+                    "⚠️ Warning: Timed out waiting for \\(property.rawValue) to \\(result ? "equal" : "not equal") '\\(expectedValue)'. Actual value: '\\(actualValue ?? "nil")'."
+                )
+            }
             guard let actual = actualValue else {
                 XCTFail("\\(Icons.error.rawValue) Property '\\(property.rawValue)' is nil or not of type String.", file: file, line: line)
                 return
             }
-            
-            // Build the predicate for comparison
-            let comparison = result ? "==" : "!="
-            let predicate = NSPredicate(format: "SELF \\(comparison) %@", equalTo)
-            let expectation = XCTNSPredicateExpectation(predicate: predicate, object: actual)
-            
-            // Wait for the predicate to succeed
-            let waiterResult = XCTWaiter().wait(for: [expectation], timeout: timeout.rawValue)
-            
-            // Assert based on the result
             if result {
-                XCTAssertEqual(waiterResult, .completed, "\\(Icons.error.rawValue) Expected \\(property.rawValue) to be equal '\\(equalTo)', but found '\\(actual)'.", file: file, line: line)
+                XCTAssertEqual(
+                    actual,
+                    expectedValue,
+                    "\\(Icons.error.rawValue) Expected \\(property.rawValue) to be '\\(expectedValue)', but found '\\(actual)'.",
+                    file: file, line: line
+                )
             } else {
-                XCTAssertEqual(waiterResult, .completed, "\\(Icons.error.rawValue) Expected \\(property.rawValue) not to be equal '\\(equalTo)', but found '\\(actual)'.", file: file, line: line)
+                XCTAssertNotEqual(
+                    actual,
+                    expectedValue,
+                    "\\(Icons.error.rawValue) Expected \\(property.rawValue) not to be  '\\(expectedValue)', but found '\\(actual)'.",
+                    file: file, line: line
+                )
+            }
+        }
+    
+        func turnSwitch(state: SwitchState) {
+            if let stateValue = value as? String, stateValue != state.rawValue {
+                tap()
             }
         }
     }
@@ -541,6 +549,7 @@ func generateTabsExampleEnumContent() -> String {
     }
     """
 }
+
 func generatePropertiesEnumContent() -> String {
     return """
     import Foundation
@@ -549,6 +558,26 @@ func generatePropertiesEnumContent() -> String {
         case label
         case value
         case placeholderValue
+    }
+    """
+}
+
+func generateSwitchStateEnumContent() -> String {
+    return """
+    import Foundation
+
+    enum SwitchState: String {
+        case on = "1"
+        case off = "0"
+        
+        var description: String {
+            switch self {
+            case .on:
+                return "On"
+            case .off:
+                return "Off"
+            }
+        }
     }
     """
 }

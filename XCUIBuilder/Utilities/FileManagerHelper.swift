@@ -82,7 +82,8 @@ func addSharedFiles(basePath: Path) {
         ("Support/Enums", "Timeout.swift", generateTimeoutEnumContent()),
         ("Support/Enums", "Icons.swift", generateIconsEnumContent()),
         ("Support/Enums", "TabsExample.swift", generateTabsExampleEnumContent()),
-        ("Support/Enums", "Properties.swift", generatePropertiesEnumContent())
+        ("Support/Enums", "Properties.swift", generatePropertiesEnumContent()),
+        ("Support/Enums", "SwitchState.swift", generateSwitchStateEnumContent())
     ]
 
     for (subfolder, fileName, content) in sharedFiles {
