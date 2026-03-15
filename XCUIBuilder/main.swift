@@ -8,7 +8,7 @@ import XcodeProj
 import PathKit
 
 func main() {
-    print("🔍 Starting XCUIBuilder 2.0...")
+    print("🔍 Starting XCUIBuilder...")
 
     // Step 1: Get the project path
     let projectPath = getUserInput(prompt: "Enter the path to your Xcode project (.xcodeproj or project folder):")
@@ -67,6 +67,15 @@ func main() {
         addPatternSpecificFiles(basePath: targetFolderPath, pattern: pattern!)
 
         print("✅ Successfully added the files.")
+
+    // Step 7: Register files in the Xcode project
+    print("🔗 Registering files in Xcode project...")
+    do {
+        try addGeneratedFilesToXcodeProject(projectPath: validPath, targetName: targetName)
+    } catch {
+        print("❌ Error updating Xcode project: \(error.localizedDescription)")
+        exit(1)
+    }
 }
 
 main()

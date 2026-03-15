@@ -293,25 +293,29 @@ func generateXCUIElementExtensionContent() -> String {
     import XCTest
 
     extension XCUIElement {
-        /// Returns true if the element exists and is hittable (visible and interactable on screen).
-        @objc var isVisible: Bool {
-            return exists && isHittable
-        }
-
         /// Function to handle wait for different element's states
         /// - parameter state: ElementState.
-        /// The enum to choose the element state out of exist, hittable, enabled, selected. The default value is set to*exist*.
+        /// The enum to choose the element state out of exist, hittable, enabled, selected. The default value is set
+        /// to *exist*.
         /// - parameter result: Bool. The expected result for the element state. The default value is set to *true*
-        /// - parameter for timeout: Timeout. The enum to choose the timeout duration out of navigation and defaultTimeout. The default value is set to *normal*.
-        /// - parameter isSlowed: Bool. The default value is set to *false*. If set to *true*, the function will wait for the full timeout before making an assertion
+        /// - parameter for timeout: Timeout. The enum to choose the timeout duration out of navigation and defaultTimeout.
+        /// The default value is set to *normal*.
+        /// - parameter isSlowed: Bool. The default value is set to *false*. If set to *true*, the function will wait for the
+        /// full timeout before making an assertion
         /// - returns: Bool. A boolean, true or false.
         /// - warning: There are two ways to use this function for the negative assertions.
         /// If used with *XCTAssertFalse* it will wait for the full timeout before making an assertion.
-        /// If used with *XCTAssert True* and the *result* is set to *false*, it will make an assertion at the moment when the condition is met.
+        /// If used with *XCTAssertTrue* and the *result* is set to *false*, it will make an assertion at the moment when the
+        /// condition is met.
         /// If the condition is met at the time when the function is called, it won't wait at all.
         /// It will work the same way as exists, isHittable, isEnabled or isSelected.
-        func wait(state: ElementState = .exists, result: Bool = true, for timeout: Timeout = .normal, isSlowed: Bool = false) -> Bool {
-            if !isSlowed{
+        func wait(
+            state: ElementState = .exists,
+            result: Bool = true,
+            for timeout: Timeout = .normal,
+            isSlowed: Bool = false
+        ) -> Bool {
+            if !isSlowed {
                 switch state {
                 case .exists:
                     if (result && exists) || (!result && !exists) {
@@ -326,7 +330,8 @@ func generateXCUIElementExtensionContent() -> String {
                         return true
                     }
                 case .selected:
-                    if (result && isSelected) || (!result && !isSelected) {
+                    let isSelectedState = checkSelectedState()
+                    if (result && isSelectedState) || (!result && !isSelectedState) {
                         return true
                     }
                 case .focused:
@@ -339,11 +344,37 @@ func generateXCUIElementExtensionContent() -> String {
                     }
                 }
             }
+
+            // For .selected state, use custom predicate that checks both isSelected and value
+            if state == .selected {
+                let predicate = NSPredicate { _, _ in
+                    self.checkSelectedState() == result
+                }
+                let expectation = XCTNSPredicateExpectation(predicate: predicate, object: self)
+                return XCTWaiter().wait(for: [expectation], timeout: timeout.rawValue) == .completed
+            }
+
             let predicate = NSPredicate(format: "\\(state.rawValue) == \\(result ? "true" : "false")")
             let expectation = XCTNSPredicateExpectation(predicate: predicate, object: self)
-            return XCTWaiter.wait(for: [expectation], timeout: timeout.rawValue) == .completed
+            return XCTWaiter().wait(for: [expectation], timeout: timeout.rawValue) == .completed
         }
-        
+
+        /// Checks if element is in selected state by verifying either:
+        /// - Standard iOS isSelected trait (for native TabView/UITabBar)
+        /// - accessibilityValue contains "selected" case-insensitively (for PDS components like PDSTabs)
+        /// - Returns: Bool indicating if element is selected
+        private func checkSelectedState() -> Bool {
+            // Check standard iOS selected trait
+            if isSelected {
+                return true
+            }
+            // Check PDS components that use accessibilityValue with "selected" text
+            if let value = value as? String {
+                return value.lowercased().contains("selected")
+            }
+            return false
+        }
+
         /// Taps on the element at a specific offset relative to its bounds, regardless of its state.
         /// - Parameters:
         ///   - dx: A horizontal offset, specified as a normalized value between 0.0 and 1.0,
@@ -353,53 +384,32 @@ func generateXCUIElementExtensionContent() -> String {
         ///         where 0.0 represents the top edge of the element and 1.0 represents the bottom edge.
         ///         The default value is 0.5, which corresponds to the vertical center of the element.
         ///
+        /// - Note: Values outside the 0.0...1.0 range are valid and tap a point beyond the element's bounds.
+        ///         For example, dx: 1.5 taps 50% of the element's width to the right of its right edge.
+        ///         This is useful for tapping elements that are partially off-screen or obscured by overlapping views.
+        ///
         /// - Usage:
         /// ```swift
         /// element.forceTapWithOffset() // Taps the center of the element
         /// element.forceTapWithOffset(dx: 0.2, dy: 0.8) // Taps near the bottom-left corner of the element
+        /// element.forceTapWithOffset(dx: 1.5, dy: 0.5) // Taps outside the right edge of the element
         /// ```
         func forceTapWithOffset(dx: Double = 0.5, dy: Double = 0.5) {
             coordinate(withNormalizedOffset: CGVector(dx: dx, dy: dy)).tap()
         }
-        
-        /// Returns sibling elements of the given type, if the current element can be identified by an `identifier` or a `label`.
-        /// - Parameters:
-        ///   - siblingType: The type of sibling elements you want to find.
-        ///   - parentType: The type of the parent element containing both the current element and its siblings.
-        /// - Returns: A query for sibling elements of the given type, or nil if the parent is not found.
-        func siblings(ofType siblingType: XCUIElement.ElementType, inParentOfType parentType: XCUIElement.ElementType) -> XCUIElementQuery? {
-            // Search the entire hierarchy for an ancestor of the specified type
-            let ancestorQuery = BaseScreen.app.descendants(matching: parentType)
-            
-            // Look for the parent that contains both the current element (self) and its siblings
-            for index in 0..<ancestorQuery.count {
-                let potentialParent = ancestorQuery.element(boundBy: index)
-                
-                // Check if the current element (`self`) is a child of this parent
-                let parentChildren = potentialParent.children(matching: .any)
-                let siblings = potentialParent.children(matching: siblingType)
-                for i in 0..<parentChildren.count {
-                    let child = parentChildren.element(boundBy: i)
-                    if child.identifier == self.identifier && self.identifier != "" {
-                        // Found the parent, return the siblings of the specified type
-                        return siblings.matching(NSPredicate(format: "self.identifier != %@.identifier", self))
-                    } else if child.label == self.label && self.label != "" {
-                        return siblings.matching(NSPredicate(format: "self.label != %@.label", self))
-                    } else {
-                        continue
-                    }
-                }
-            }
-            return nil
-        }
-        
+
         /// Asserts the state of a UI element based on the expected condition.
-        /// - parameter state: `ElementState`. The state of the element to check. Possible values are `.exists`, `.hittable`, `.enabled`, `.selected`, and `.focused`. Default is `.exists`.
+        /// - parameter state: `ElementState`. The state of the element to check. Possible values are `.exists`, `.hittable`,
+        /// `.enabled`, `.selected`, and `.focused`. Default is `.exists`.
         /// - parameter result: `Bool`. The expected result of the state assertion. Default is `true`.
-        /// - parameter timeout: `TestTimeout`. The time within which the element state must meet the expected result. Default is `.defaultTimeout`.
-        /// - parameter file: `StaticString`. The file where the assertion is performed. Used for logging purposes when the test fails. Default is the current file.
-        /// - parameter line: `UInt`. The line number where the assertion is performed. Used for logging purposes when the test fails. Default is the current line.
-        /// - warning: Use `XCTAssertTrue` to verify if the condition is satisfied. If you want to assert that the element doesn't match the state, set the `result` parameter to `false`.
+        /// - parameter timeout: `TestTimeout`. The time within which the element state must meet the expected result. Default
+        /// is `.defaultTimeout`.
+        /// - parameter file: `StaticString`. The file where the assertion is performed. Used for logging purposes when the
+        /// test fails. Default is the current file.
+        /// - parameter line: `UInt`. The line number where the assertion is performed. Used for logging purposes when the
+        /// test fails. Default is the current line.
+        /// - warning: Use `XCTAssertTrue` to verify if the condition is satisfied. If you want to assert that the element
+        /// doesn't match the state, set the `result` parameter to `false`.
         /// - returns: `Void`. Asserts the condition and logs error if it fails.
         ///
         /// - _Examples:_
@@ -415,11 +425,13 @@ func generateXCUIElementExtensionContent() -> String {
         ///     ```swift
         ///     assert(state: .selected, result: false)
         ///     ```
-        func assert(state: ElementState = .exists,
-                    expected result: Bool = true,
-                    timeout: Timeout = .normal,
-                    file: StaticString = #filePath,
-                    line: UInt = #line) {
+        func assert(
+            state: ElementState = .exists,
+            expected result: Bool = true,
+            timeout: Timeout = .normal,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) {
             var message = ""
             switch state {
             case .exists:
@@ -433,173 +445,354 @@ func generateXCUIElementExtensionContent() -> String {
             case .focused:
                 message = "has\\(result ? " no" : "") focus"
             case .visible:
-                message = "is\\(result ? "n't" : "") visible"
+                message = "is\\(result ? " not" : "") visible"
             }
-            let error = "\\(Icons.error.rawValue) - The \\(description) \\(message)"
+            let error = "\\(Icons.error.rawValue) — The \\(description) \\(message)"
             XCTAssertTrue(wait(state: state, result: result, for: timeout), "\\(error)", file: file, line: line)
         }
-        
+
+        /// Asserts that a specific property of a UI element matches an expected value.
+        /// - parameter property: `Properties`. The property of the element to check. Possible values are `.label`, `.value`,
+        /// and `.placeholderValue`.
+        /// - parameter equalTo: `String`. The expected value of the property.
+        /// - parameter expected: `Bool`. The expected result of the comparison. Default is `true`.
+        /// - parameter timeout: `TestTimeout`. The time within which the property value must match the expected result.
+        /// Default is `.defaultTimeout`.
+        /// - parameter file: `StaticString`. The file where the assertion is performed. Used for logging purposes when the
+        /// test fails. Default is the current file.
+        /// - parameter line: `UInt`. The line number where the assertion is performed. Used for logging purposes when the
+        /// test fails. Default is the current line.
+        /// - warning: Use `XCTAssertEqual` or `XCTAssertNotEqual` based on the `expected` parameter to validate the
+        /// condition.
+        /// - returns: `Void`. Asserts the condition and logs error if it fails.
+        ///
+        /// - _Examples:_
+        ///   - To verify the label of an element equals "Submit":
+        ///     ```swift
+        ///     assert(for: .label, equalTo: "Submit")
+        ///     ```
+        ///   - To verify the value of an element is not equal to "Jane Doe":
+        ///     ```swift
+        ///     assert(for: .value, equalTo: "Jane Doe", expected: false)
+        ///     ```
         func assert(
             for property: Properties,
-            equalTo expectedValue: String,
+            equalTo: String,
             expected result: Bool = true,
             timeout: Timeout = .normal,
             file: StaticString = #file,
             line: UInt = #line
         ) {
-            let predicate: NSPredicate = {
-                switch property {
-                case .label:
-                    return result
-                    ? NSPredicate(format: "label MATCHES %@", NSRegularExpression.escapedPattern(for: expectedValue))
-                    : NSPredicate(format: "NOT (label MATCHES %@)", NSRegularExpression.escapedPattern(for: expectedValue))
-                case .value:
-                    return result
-                    ? NSPredicate(format: "value MATCHES %@", NSRegularExpression.escapedPattern(for: expectedValue))
-                    : NSPredicate(format: "NOT (value MATCHES %@)", NSRegularExpression.escapedPattern(for: expectedValue))
-                case .placeholderValue:
-                    return result
-                    ? NSPredicate(format: "placeholderValue MATCHES %@", NSRegularExpression.escapedPattern(for: expectedValue))
-                    : NSPredicate(format: "NOT (placeholderValue MATCHES %@)", NSRegularExpression.escapedPattern(for: expectedValue))
+            // Build the predicate that re-reads the property value on each evaluation
+            let predicate = NSPredicate { _, _ in
+                let actualValue: String? = {
+                    switch property {
+                    case .label:
+                        return self.label
+                    case .value:
+                        return self.value as? String
+                    case .placeholderValue:
+                        return self.placeholderValue
+                    }
+                }()
+                guard let actual = actualValue else {
+                    return false
                 }
-            }()
-            let expectation = XCTNSPredicateExpectation(predicate: predicate, object: self)
+                return result ? (actual == equalTo) : (actual != equalTo)
+            }
+            let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)
             let waiterResult = XCTWaiter().wait(for: [expectation], timeout: timeout.rawValue)
-                
-            let actualValue: String? = {
+
+            // Re-read the current value for accurate error message
+            let currentValue: String? = {
                 switch property {
                 case .label:
-                    return self.label
+                    return label
                 case .value:
-                    return self.value as? String
+                    return value as? String
                 case .placeholderValue:
-                    return self.placeholderValue
+                    return placeholderValue
                 }
             }()
-            if waiterResult != .completed {
-                print(
-                    "⚠️ Warning: Timed out waiting for \\(property.rawValue) to \\(result ? "equal" : "not equal") '\\(expectedValue)'. Actual value: '\\(actualValue ?? "nil")'."
-                )
-            }
-            guard let actual = actualValue else {
-                XCTFail("\\(Icons.error.rawValue) Property '\\(property.rawValue)' is nil or not of type String.", file: file, line: line)
-                return
-            }
             if result {
                 XCTAssertEqual(
-                    actual,
-                    expectedValue,
-                    "\\(Icons.error.rawValue) Expected \\(property.rawValue) to be '\\(expectedValue)', but found '\\(actual)'.",
-                    file: file, line: line
+                    waiterResult,
+                    .completed,
+                    "\\(Icons.error.rawValue) Expected \\(property.rawValue) to be equal '\\(equalTo)', but found '\\(currentValue ?? "nil")'.",
+                    file: file,
+                    line: line
                 )
             } else {
-                XCTAssertNotEqual(
-                    actual,
-                    expectedValue,
-                    "\\(Icons.error.rawValue) Expected \\(property.rawValue) not to be  '\\(expectedValue)', but found '\\(actual)'.",
-                    file: file, line: line
+                XCTAssertEqual(
+                    waiterResult,
+                    .completed,
+                    "\\(Icons.error.rawValue) Expected \\(property.rawValue) not to be equal '\\(equalTo)', but found '\\(currentValue ?? "nil")'.",
+                    file: file,
+                    line: line
                 )
             }
         }
-    
-        func turnSwitch(state: SwitchState) {
+
+        var hasKeyboardFocus: Bool {
+            guard let hasFocus = value(forKey: "hasKeyboardFocus") as? Bool else {
+                return false
+            }
+            return hasFocus
+        }
+
+        func focusAndEnter(text: String) {
+            for _ in 0 ..< 5 {
+                if hasKeyboardFocus { break }
+                tap()
+            }
+            typeText(text)
+        }
+
+        func enter(text: String) {
+            tap()
+            typeText(text)
+        }
+
+        /// The bounds to check element visibility against.
+        /// On iPad, the app window may be smaller than the screen (split view, slide over, multitasking),
+        /// so we use the window frame to get the actual visible area of the app.
+        /// On iPhone, the app always occupies the full screen, so we use screen bounds directly
+        /// to avoid creating an unnecessary XCUIApplication instance.
+        private var visibilityBounds: CGRect {
+            if UIDevice.current.userInterfaceIdiom == .pad {
+                let window = XCUIApplication().windows.element(boundBy: 0)
+                if window.exists, !window.frame.isEmpty {
+                    return window.frame
+                }
+            }
+            // iPhone or fallback: app always occupies the full screen
+            let screenSize = XCUIScreen.main.screenshot().image.size
+            return CGRect(origin: .zero, size: screenSize)
+        }
+
+        /// Returns true if the element exists and is at least partially visible on screen
+        var isVisible: Bool {
+            guard exists else { return false }
+            return visibilityBounds.intersects(frame)
+        }
+
+        /// Returns true if the element exists and is completely visible within the screen bounds
+        var isFullyVisible: Bool {
+            guard exists, !frame.isEmpty else { return false }
+            return visibilityBounds.contains(frame)
+        }
+
+        /// Returns true if the element's point at the given normalized offset is visible on screen.
+        /// - Parameters:
+        ///   - dx: Normalized X offset within the element's frame (0...1). Default: 0.5 (center).
+        ///   - dy: Normalized Y offset within the element's frame (0...1). Default: 0.5 (center).
+        ///   - tabBarPresent: Pass true when a UITabBar is present; the point must not be covered by it.
+        func isVisibleAtOffset(
+            dx: CGFloat = 0.5,
+            dy: CGFloat = 0.5,
+            tabBarPresent: Bool = false
+        ) -> Bool {
+            guard exists else { return false }
+            let vector = CGVector(dx: dx, dy: dy)
+            let coordinate = coordinate(withNormalizedOffset: vector)
+            let screenPoint = coordinate.screenPoint
+            let screenSize = XCUIScreen.main.screenshot().image.size
+            let screenBounds = CGRect(origin: .zero, size: screenSize)
+            if tabBarPresent {
+                let tabBar = XCUIApplication().tabBars.firstMatch
+                if tabBar.exists, tabBar.frame.contains(screenPoint) {
+                    return false
+                }
+            }
+            return screenBounds.contains(screenPoint) && frame.contains(screenPoint)
+        }
+
+        func turnSwitch(_ state: SwitchState) {
             if let stateValue = value as? String, stateValue != state.rawValue {
                 tap()
             }
         }
 
-        /// Returns true if the element's point at the given normalized offset is visible on screen.
-        /// - Parameters:
-        ///   - dx: A horizontal offset within the element's frame, specified as a normalized value
-        ///         between 0.0 and 1.0, where 0.0 represents the left edge. Default: 0.5 (center).
-        ///   - dy: A vertical offset within the element's frame, specified as a normalized value
-        ///         between 0.0 and 1.0, where 0.0 represents the top edge. Default: 0.5 (center).
-        ///   - isInBarsPresent: Bool. Pass true when a UITabBar is present; the point must not be
-        ///         covered by it. Default: false.
-        /// - Returns: Bool. True if the point is visible on screen, false otherwise.
-        func isOnScreen(
-            dx: CGFloat = 0.5,
-            dy: CGFloat = 0.5,
-            isInBarsPresent: Bool = false
-        ) -> Bool {
-            guard exists else { return false }
-
-            let vector = CGVector(dx: dx, dy: dy)
-            let coordinate = coordinate(withNormalizedOffset: vector)
-            let screenSize = XCUIScreen.main.screenshot().image.size
-            let screenBounds = CGRect(origin: .zero, size: screenSize)
-            let screenPoint = coordinate.screenPoint
-
-            if isInBarsPresent {
-                let app = XCUIApplication()
-                var bottomBoundary: CGFloat = app.frame.maxY
-                let tabBar = app.tabBars.firstMatch
-                if tabBar.exists {
-                    bottomBoundary = tabBar.frame.minY
-                }
-                return screenBounds.contains(screenPoint)
-                    && frame.contains(screenPoint)
-                    && screenPoint.y < bottomBoundary
+        /// Checks if element is fully contained within the content area between island and tab bar
+        /// - Returns: True if element is completely within the usable content area
+        func isFullyInContentArea() -> Bool {
+            let app = XCUIApplication()
+            let topBoundary: CGFloat
+            let navBar = app.navigationBars.firstMatch
+            if navBar.exists {
+                topBoundary = navBar.frame.maxY
+            } else {
+                let screenHeight = app.frame.height
+                topBoundary = screenHeight >= 800 ? 59 : 20
             }
-
-            return screenBounds.contains(screenPoint) && frame.contains(screenPoint)
+            let bottomBoundary: CGFloat
+            let tabBar = app.tabBars.element(boundBy: 0)
+            if tabBar.exists {
+                bottomBoundary = tabBar.frame.minY
+            } else {
+                let allTabBars = app.descendants(matching: .tabBar)
+                if allTabBars.allElementsBoundByIndex.isEmpty == false,
+                   let firstTabBar = allTabBars.allElementsBoundByIndex.first {
+                    bottomBoundary = firstTabBar.frame.minY
+                } else {
+                    bottomBoundary = app.frame.height
+                }
+            }
+            let elementTop = frame.minY
+            let elementBottom = frame.maxY
+            let isFullyVisible = elementTop > topBoundary && elementBottom < bottomBoundary
+            return isFullyVisible
         }
 
-        /// Asserts that a dynamically-computed value matches an expected value.
-        /// The closure is re-evaluated each time. Use for dynamic state (e.g., not yet loaded
-        /// when the predicate is first built).
-        /// - parameter actual: () -> String?  A closure that returns the actual value to compare.
-        /// - parameter expectedValue: String  The expected value to compare against.
-        /// - parameter expected result: Bool  Pass true to assert equality, false to assert inequality. Default: true.
-        /// - parameter file: StaticString  The file where the assertion is performed. Default: current file.
-        /// - parameter line: UInt  The line number where the assertion is performed. Default: current line.
+        func safeTap(timeout: Timeout = .short) {
+            guard wait(state: .hittable, for: timeout) else {
+                XCTFail("Element is not hittable: \\(self)")
+                return
+            }
+            tap()
+        }
+
+        func swipeUntil(
+            in direction: SwipeDirection = .up,
+            maxAttempts: Int = 5
+        ) {
+            for _ in 0 ..< maxAttempts {
+                if wait(state: .hittable, for: .short) { return }
+                switch direction {
+                case .up: swipeUp()
+                case .down: swipeDown()
+                case .left: swipeLeft()
+                case .right: swipeRight()
+                }
+            }
+        }
+
+        func swipeToAndTapElement(
+            withText text: String,
+            direction: SwipeDirection = .left,
+            maxAttempts: Int = 5
+        ) {
+            let element = descendants(matching: .staticText)[text].firstMatch
+            for _ in 0 ..< maxAttempts {
+                if element.wait(state: .hittable, for: .short) { break }
+                switch direction {
+                case .up: swipeUp()
+                case .down: swipeDown()
+                case .left: swipeLeft()
+                case .right: swipeRight()
+                }
+            }
+            element.tap()
+        }
+
+        func swipeUntilVisible(
+            withText text: String,
+            direction: SwipeDirection = .left,
+            maxAttempts: Int = 5
+        ) {
+            let element = descendants(matching: .staticText)[text].firstMatch
+            for _ in 0 ..< maxAttempts {
+                if element.wait(state: .visible, for: .short) { break }
+                switch direction {
+                case .up: swipeUp()
+                case .down: swipeDown()
+                case .left: swipeLeft()
+                case .right: swipeRight()
+                }
+            }
+        }
+
+        /// Asserts that a dynamically computed value matches an expected value with wait support.
+        /// - parameter actualValue: `@escaping () -> T`. A closure that returns the actual value to compare. The closure is
+        /// called repeatedly during the wait period to check if the value matches the expected value.
+        /// - parameter equalTo: `T`. The expected value for comparison. Must be of the same type as the value returned by the
+        /// `actualValue` closure.
+        /// - parameter expected: `Bool`. The expected result of the comparison. If `true`, asserts that values are equal.
+        /// If `false`, asserts that values are not equal. Default is `true`.
+        /// - parameter timeout: `Timeouts`. The time within which the value must match the expected result. Default is `.normal`.
+        /// - parameter file: `StaticString`. The file where the assertion is performed. Default: current file.
+        /// - parameter line: `UInt`. The line number where the assertion is performed. Default: current line.
+        /// - warning: The `actualValue` closure is called multiple times during the wait period. Use this assertion when
+        /// validating dynamic values that may change over time (e.g., text being typed, asynchronous updates).
+        /// - returns: `Void`. Asserts the condition and logs error if it fails.
         ///
         /// - _Examples:_
-        ///   - To verify the label equals "SubUser":
+        ///   - To verify that a password field contains the expected number of characters:
         ///     ```swift
-        ///     assert(actual: { element.label }, expectedValue: "SubUser")
+        ///     passwordField.assertValue(
+        ///         actualValue: { (passwordField.value as? String ?? "").count },
+        ///         equalTo: password.password.count
+        ///     )
         ///     ```
-        ///   - To verify the label is not equal to "Jane Doe":
+        ///   - To verify that an email field contains the expected value:
         ///     ```swift
-        ///     assert(actual: { element.label }, expectedValue: "Jane Doe", expected: false)
+        ///     emailField.assertValue(
+        ///         actualValue: { emailField.value as? String ?? "" },
+        ///         equalTo: "user@example.com"
+        ///     )
         ///     ```
-        func assert(
-            actual: () -> String?,
-            expectedValue: String,
+        ///   - To verify that a label text equals the expected value with short timeout:
+        ///     ```swift
+        ///     statusLabel.assertValue(
+        ///         actualValue: { statusLabel.label },
+        ///         equalTo: "Success",
+        ///         timeout: .short
+        ///     )
+        ///     ```
+        ///   - To verify that an error label is not empty (inequality check):
+        ///     ```swift
+        ///     errorLabel.assertValue(
+        ///         actualValue: { errorLabel.label },
+        ///         equalTo: "",
+        ///         expected: false
+        ///     )
+        ///     ```
+        ///   - To verify that a toggle switch is enabled:
+        ///     ```swift
+        ///     toggleSwitch.assertValue(
+        ///         actualValue: { toggleSwitch.isEnabled },
+        ///         equalTo: true
+        ///     )
+        ///     ```
+        ///   - To verify that a status value is not "Error":
+        ///     ```swift
+        ///     statusLabel.assertValue(
+        ///         actualValue: { statusLabel.label },
+        ///         equalTo: "Error",
+        ///         expected: false
+        ///     )
+        ///     ```
+        func assertValue<T: Equatable>(
+            actualValue: @escaping () -> T,
+            equalTo expectedValue: T,
             expected result: Bool = true,
-            file: StaticString = #filePath,
+            timeout: Timeout = .normal,
+            file: StaticString = #file,
             line: UInt = #line
         ) {
-            let actualValue = actual()
+            let predicate = NSPredicate { _, _ in
+                let actual = actualValue()
+                return result ? (actual == expectedValue) : (actual != expectedValue)
+            }
+            let expectation = XCTNSPredicateExpectation(predicate: predicate, object: nil)
+            let waiterResult = XCTWaiter().wait(for: [expectation], timeout: timeout.rawValue)
+            let actual = actualValue()
             if result {
                 XCTAssertEqual(
-                    actualValue,
-                    expectedValue,
-                    "\\(Icons.error.rawValue) Expected value to be equal '\\(expectedValue)'. Not Found '\\(actualValue ?? "nil")'.",
-                    file: file, line: line
+                    waiterResult,
+                    .completed,
+                    "\\(Icons.error.rawValue) Expected value to be equal '\\(expectedValue)', but found '\\(actual)'.",
+                    file: file,
+                    line: line
                 )
             } else {
-                XCTAssertNotEqual(
-                    actualValue,
-                    expectedValue,
-                    "\\(Icons.error.rawValue) Expected value not to be equal '\\(expectedValue)'. Not Found '\\(actualValue ?? "nil")'.",
-                    file: file, line: line
+                XCTAssertEqual(
+                    waiterResult,
+                    .completed,
+                    "\\(Icons.error.rawValue) Expected value not to be equal '\\(expectedValue)', but found '\\(actual)'.",
+                    file: file,
+                    line: line
                 )
-            }
-        }
-
-        /// Swipes the element in the specified direction with the given velocity.
-        /// - parameter direction: SwipeDirection  The direction to swipe.
-        /// - parameter velocity: XCUIGestureVelocity  The velocity of the swipe. Default: .fast.
-        func swipe(
-            direction: SwipeDirection,
-            velocity: XCUIGestureVelocity = .fast
-        ) {
-            switch direction {
-            case .up:    swipeUp(velocity: velocity)
-            case .down:  swipeDown(velocity: velocity)
-            case .left:  swipeLeft(velocity: velocity)
-            case .right: swipeRight(velocity: velocity)
             }
         }
     }

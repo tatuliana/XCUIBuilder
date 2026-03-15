@@ -1,7 +1,7 @@
 
 ![XCUIBuilder_small_logo](https://github.com/user-attachments/assets/80dac084-e6b1-4d12-975d-50a5b35a3f1d)
 
-# XCUIBuilder 2.0
+# XCUIBuilder
 
 **XCUIBuilder** is a Swift-based command-line tool designed to deploy a robust and reusable UI testing framework for iOS projects. By automating the creation of a structured folder hierarchy and generating pre-written examples for screens and tests, it enables seamless integration of a scalable and efficient UI testing framework into your project.
 
@@ -171,6 +171,64 @@ Once the foundational framework has been deployed with **XCUIBuilder**, you can 
 
 ### Getting Started
 Refer to the [XCUISnippetDeployer documentation](https://github.com/tatuliana/XCUISnippet_Deployer/tree/main) for installation and usage instructions.
+
+## 📋 Release Notes
+
+### Smarter Xcode Project Registration
+
+XCUIBuilder now automatically detects how your Xcode project manages files and handles registration accordingly:
+
+- **Xcode 16+ (folder sync)** — if your target uses `fileSystemSynchronizedGroups`, deployed files appear in Xcode automatically with no extra steps required.
+- **Traditional groups** — XCUIBuilder now explicitly registers all generated files in the `.xcodeproj`, creating the proper group hierarchy, file references, and build phase entries. Previously, files were written to disk but not registered, requiring a manual Xcode refresh.
+
+---
+
+### Upgraded XCUIElement Extension
+
+#### Visibility
+
+Added a comprehensive, iPad-aware visibility system:
+
+- `isVisible` — `true` if the element is at least partially visible on screen. Uses the app window bounds on iPad (split view / slide over aware) and screen bounds on iPhone.
+- `isFullyVisible` — `true` only if the element's entire frame is within the visible area.
+- `isVisibleAtOffset(dx:dy:tabBarPresent:)` — checks visibility of a specific point within the element; optionally excludes the tab bar area.
+- `ElementState.visible` in `wait()` and `assert()` is now driven by the new `isVisible` property.
+
+#### Selected State
+
+`wait(state: .selected)` and the new `checkSelectedState()` helper now handle both the standard iOS `isSelected` trait and custom components that express selection through their accessibility value (e.g., components using `"selected"` as the accessibility value string).
+
+#### Keyboard Focus
+
+Added `hasKeyboardFocus` as a computed var using KVC. Apple's native `hasFocus` property always returns `false`, making it unreliable for asserting keyboard focus in UI tests — this implementation works around that.
+
+#### Input Helpers
+
+- `focusAndEnter(text:)` — taps until the element has keyboard focus (up to 5 attempts), then types.
+- `enter(text:)` — taps and types in one call.
+
+#### Safer Interactions
+
+- `safeTap(timeout:)` — waits for the element to become hittable before tapping; fails with a clear message if the timeout expires.
+- `isFullyInContentArea()` — checks whether the element is fully contained within the usable screen area between the navigation bar and tab bar.
+
+#### Scroll & Swipe Utilities
+
+- `swipeUntil(in:maxAttempts:)` — swipes on `self` until it becomes hittable.
+- `swipeToAndTapElement(withText:direction:maxAttempts:)` — applied to a scroll view, swipes in the specified direction until a static text descendant is hittable, then taps it.
+- `swipeUntilVisible(withText:direction:maxAttempts:)` — applied to the element itself, swipes in the specified direction until a static text descendant becomes visible.
+
+#### Assertions
+
+- `assertValue<T: Equatable>(actualValue:equalTo:expected:timeout:file:line:)` — a generic, wait-enabled assertion for dynamically computed values. The closure is re-evaluated repeatedly during the wait period, making it reliable for text being typed, counters updating, or any async state.
+- `assert(for:equalTo:)` — reimplemented using an `NSPredicate` closure that re-reads the property value on each evaluation, rather than building a static predicate at call time. More reliable for elements whose label or value changes asynchronously.
+
+#### New Enums
+
+- `SwipeDirection` — `up`, `down`, `left`, `right`.
+- `SwitchState` — `on` / `off` with string raw values compatible with `XCUIElement.value`.
+
+---
 
 ## 🤝 Contributing
 
