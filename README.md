@@ -174,6 +174,8 @@ Refer to the [XCUISnippetDeployer documentation](https://github.com/tatuliana/XC
 
 ## 📋 Release Notes
 
+### v2.0.0
+
 ### Smarter Xcode Project Registration
 
 XCUIBuilder now automatically detects how your Xcode project manages files and handles registration accordingly:
