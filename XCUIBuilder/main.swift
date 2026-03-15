@@ -8,7 +8,7 @@ import XcodeProj
 import PathKit
 
 func main() {
-    print("🔍 Starting XCUIBuilder...")
+    print("🔍 Starting XCUIBuilder 2.0...")
 
     // Step 1: Get the project path
     let projectPath = getUserInput(prompt: "Enter the path to your Xcode project (.xcodeproj or project folder):")

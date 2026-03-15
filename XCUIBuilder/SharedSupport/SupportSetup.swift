@@ -94,6 +94,8 @@ func generateScreenActivitiesProtocolContent() -> String {
                 message = "is\\(result ? "" : "n't") selected"
             case .focused:
                 message = "has\\(result ? "" : " no") focus"
+            case .visible:
+                message = "is\\(result ? "" : "n't") visible"
             }
             let activityName = "\\(Icons.assert.rawValue) - \\(screenName) - Verifying if the \\(description) \\(message)"
             return XCTContext.runActivity(named: activityName) { _ in
@@ -291,6 +293,11 @@ func generateXCUIElementExtensionContent() -> String {
     import XCTest
 
     extension XCUIElement {
+        /// Returns true if the element exists and is hittable (visible and interactable on screen).
+        @objc var isVisible: Bool {
+            return exists && isHittable
+        }
+
         /// Function to handle wait for different element's states
         /// - parameter state: ElementState.
         /// The enum to choose the element state out of exist, hittable, enabled, selected. The default value is set to*exist*.
@@ -323,7 +330,11 @@ func generateXCUIElementExtensionContent() -> String {
                         return true
                     }
                 case .focused:
-                    if (result && hasFocus) || (!result && !hasFocus) {
+                    if (result && hasKeyboardFocus) || (!result && !hasKeyboardFocus) {
+                        return true
+                    }
+                case .visible:
+                    if (result && isVisible) || (!result && !isVisible) {
                         return true
                     }
                 }
@@ -421,6 +432,8 @@ func generateXCUIElementExtensionContent() -> String {
                 message = "is\\(result ? "n't" : "") selected"
             case .focused:
                 message = "has\\(result ? " no" : "") focus"
+            case .visible:
+                message = "is\\(result ? "n't" : "") visible"
             }
             let error = "\\(Icons.error.rawValue) - The \\(description) \\(message)"
             XCTAssertTrue(wait(state: state, result: result, for: timeout), "\\(error)", file: file, line: line)
@@ -494,6 +507,101 @@ func generateXCUIElementExtensionContent() -> String {
                 tap()
             }
         }
+
+        /// Returns true if the element's point at the given normalized offset is visible on screen.
+        /// - Parameters:
+        ///   - dx: A horizontal offset within the element's frame, specified as a normalized value
+        ///         between 0.0 and 1.0, where 0.0 represents the left edge. Default: 0.5 (center).
+        ///   - dy: A vertical offset within the element's frame, specified as a normalized value
+        ///         between 0.0 and 1.0, where 0.0 represents the top edge. Default: 0.5 (center).
+        ///   - isInBarsPresent: Bool. Pass true when a UITabBar is present; the point must not be
+        ///         covered by it. Default: false.
+        /// - Returns: Bool. True if the point is visible on screen, false otherwise.
+        func isOnScreen(
+            dx: CGFloat = 0.5,
+            dy: CGFloat = 0.5,
+            isInBarsPresent: Bool = false
+        ) -> Bool {
+            guard exists else { return false }
+
+            let vector = CGVector(dx: dx, dy: dy)
+            let coordinate = coordinate(withNormalizedOffset: vector)
+            let screenSize = XCUIScreen.main.screenshot().image.size
+            let screenBounds = CGRect(origin: .zero, size: screenSize)
+            let screenPoint = coordinate.screenPoint
+
+            if isInBarsPresent {
+                let app = XCUIApplication()
+                var bottomBoundary: CGFloat = app.frame.maxY
+                let tabBar = app.tabBars.firstMatch
+                if tabBar.exists {
+                    bottomBoundary = tabBar.frame.minY
+                }
+                return screenBounds.contains(screenPoint)
+                    && frame.contains(screenPoint)
+                    && screenPoint.y < bottomBoundary
+            }
+
+            return screenBounds.contains(screenPoint) && frame.contains(screenPoint)
+        }
+
+        /// Asserts that a dynamically-computed value matches an expected value.
+        /// The closure is re-evaluated each time. Use for dynamic state (e.g., not yet loaded
+        /// when the predicate is first built).
+        /// - parameter actual: () -> String?  A closure that returns the actual value to compare.
+        /// - parameter expectedValue: String  The expected value to compare against.
+        /// - parameter expected result: Bool  Pass true to assert equality, false to assert inequality. Default: true.
+        /// - parameter file: StaticString  The file where the assertion is performed. Default: current file.
+        /// - parameter line: UInt  The line number where the assertion is performed. Default: current line.
+        ///
+        /// - _Examples:_
+        ///   - To verify the label equals "SubUser":
+        ///     ```swift
+        ///     assert(actual: { element.label }, expectedValue: "SubUser")
+        ///     ```
+        ///   - To verify the label is not equal to "Jane Doe":
+        ///     ```swift
+        ///     assert(actual: { element.label }, expectedValue: "Jane Doe", expected: false)
+        ///     ```
+        func assert(
+            actual: () -> String?,
+            expectedValue: String,
+            expected result: Bool = true,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) {
+            let actualValue = actual()
+            if result {
+                XCTAssertEqual(
+                    actualValue,
+                    expectedValue,
+                    "\\(Icons.error.rawValue) Expected value to be equal '\\(expectedValue)'. Not Found '\\(actualValue ?? "nil")'.",
+                    file: file, line: line
+                )
+            } else {
+                XCTAssertNotEqual(
+                    actualValue,
+                    expectedValue,
+                    "\\(Icons.error.rawValue) Expected value not to be equal '\\(expectedValue)'. Not Found '\\(actualValue ?? "nil")'.",
+                    file: file, line: line
+                )
+            }
+        }
+
+        /// Swipes the element in the specified direction with the given velocity.
+        /// - parameter direction: SwipeDirection  The direction to swipe.
+        /// - parameter velocity: XCUIGestureVelocity  The velocity of the swipe. Default: .fast.
+        func swipe(
+            direction: SwipeDirection,
+            velocity: XCUIGestureVelocity = .fast
+        ) {
+            switch direction {
+            case .up:    swipeUp(velocity: velocity)
+            case .down:  swipeDown(velocity: velocity)
+            case .left:  swipeLeft(velocity: velocity)
+            case .right: swipeRight(velocity: velocity)
+            }
+        }
     }
     """
 }
@@ -507,7 +615,8 @@ func generateElementStateEnumContent() -> String {
         case hittable = "isHittable"
         case enabled = "isEnabled"
         case selected = "isSelected"
-        case focused = "hasFocus"
+        case focused = "hasKeyboardFocus"
+        case visible = "isVisible"
     }
     """
 }
@@ -558,6 +667,19 @@ func generatePropertiesEnumContent() -> String {
         case label
         case value
         case placeholderValue
+    }
+    """
+}
+
+func generateSwipeDirectionEnumContent() -> String {
+    return """
+    import Foundation
+
+    enum SwipeDirection {
+        case up
+        case down
+        case left
+        case right
     }
     """
 }

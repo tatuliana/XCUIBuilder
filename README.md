@@ -1,7 +1,7 @@
 
 ![XCUIBuilder_small_logo](https://github.com/user-attachments/assets/80dac084-e6b1-4d12-975d-50a5b35a3f1d)
 
-# XCUIBuilder 
+# XCUIBuilder 2.0
 
 **XCUIBuilder** is a Swift-based command-line tool designed to deploy a robust and reusable UI testing framework for iOS projects. By automating the creation of a structured folder hierarchy and generating pre-written examples for screens and tests, it enables seamless integration of a scalable and efficient UI testing framework into your project.
 
